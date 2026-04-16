@@ -442,17 +442,9 @@
   overflow: hidden;
 }
 
-.evaluateBtn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, #818cf8, #a78bfa);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.evaluateBtn:hover:not(:disabled)::before { opacity: 1; }
+/* No ::before needed — direct background change avoids z-index text-hiding bug */
 .evaluateBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #818cf8, #a78bfa);
   box-shadow: 0 8px 32px rgba(99,102,241,0.5);
   transform: translateY(-2px);
 }
@@ -460,12 +452,10 @@
 .evaluateBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .evaluateBtnIcon {
-  position: relative;
   font-size: 1.1rem;
 }
 
 .evaluateBtnArrow {
-  position: relative;
   margin-left: auto;
   font-size: 1.1rem;
   opacity: 0.7;
@@ -546,16 +536,28 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
   border-radius: 99px;
   transition: width 0.35s ease;
-  background-size: 200% 100%;
-  animation: progressShimmer 1.5s linear infinite;
+  /* Shine moves L→R inside the bar without shifting the gradient endpoints */
+  background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  position: relative;
+  overflow: hidden;
 }
 
-@keyframes progressShimmer {
-  from { background-position: 0% 0; }
-  to   { background-position: 200% 0; }
+/* Shine overlay — separate element so gradient stays full-width */
+.progressFill::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
+  animation: progressShine 1.6s ease-in-out infinite;
+}
+
+@keyframes progressShine {
+  from { left: -60%; }
+  to   { left: 120%; }
 }
 
 .progressLabel {
