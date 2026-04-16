@@ -8,7 +8,7 @@
 //  Upgrade 3 — Consensus scoring (3 parallel runs, averaged)
 
 const OR_URL  = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL   = 'google/gemini-2.0-flash-exp:free';
+const MODEL   = 'google/gemma-4-31b-it:free';
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 
 const CRITERIA = ['clarity', 'creativity', 'engagement', 'coherence'];
@@ -218,7 +218,7 @@ Respond ONLY with valid JSON, no markdown:
 
 // ── Public: Script Intelligence (4 parallel analyses) ────────────────────────
 
-export async function analyzeScript(chunks, chunkResults, { totalPages, filename }) {
+export async function analyzeScript(chunks, chunkResults, _meta) {
   const allNotes = chunkResults.map((c, i) =>
     `Section ${i + 1} (p.${c.startPage}–${c.endPage}): ${Object.values(c.notes).join(' ')}`
   ).join('\n');
