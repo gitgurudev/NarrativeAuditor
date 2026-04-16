@@ -87,24 +87,23 @@ function App() {
       }
     }
 
-    // ── Phase 2: synthesize all chunk results ──────────────────────────
+    // ── Phase 2: synthesize + script intelligence together ────────────
     setPhase('synthesizing');
     try {
-      const finalResult = await synthesizeEvaluation(collectedResults, {
-        totalPages: pdfInfo.pageCount,
-        filename:   pdfInfo.name,
-      });
-      setResults(finalResult);
-      setPhase('done');
+      const meta = { totalPages: pdfInfo.pageCount, filename: pdfInfo.name };
 
-      // ── Script Intelligence: 4 parallel analyses (non-blocking) ───────
-      setAnalysis('loading');
-      analyzeScript(chunks, collectedResults, {
-        totalPages: pdfInfo.pageCount,
-        filename:   pdfInfo.name,
-      })
-        .then((a) => setAnalysis(a))
-        .catch(() => setAnalysis(null));
+      const [finalResult, scriptAnalysis] = await Promise.allSettled([
+        synthesizeEvaluation(collectedResults, meta),
+        analyzeScript(chunks, collectedResults, meta),
+      ]);
+
+      if (finalResult.status === 'rejected') {
+        throw new Error(finalResult.reason?.message || 'Synthesis failed');
+      }
+
+      setResults(finalResult.value);
+      setAnalysis(scriptAnalysis.status === 'fulfilled' ? scriptAnalysis.value : null);
+      setPhase('done');
     } catch (err) {
       setError(`Synthesis failed: ${err.message}`);
       setPhase('ready');

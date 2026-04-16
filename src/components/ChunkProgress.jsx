@@ -111,10 +111,10 @@ function ChunkProgress({ chunks, statuses, chunkResults, isSynthesizing }) {
           <div className={styles.activeCardHeader}>
             <span className={styles.activePulse} aria-hidden="true" />
             <span className={styles.activeTitle}>
-              {isSynthesizing ? 'Running Final Synthesis' : `Analysing Section ${processingIdx + 1}`}
+              {isSynthesizing ? 'Generating Full Report + Script Intelligence…' : `Analysing Section ${processingIdx + 1}`}
             </span>
             <span className={styles.activeBadge}>
-              {isSynthesizing ? '3 parallel judges' : '12 parallel calls'}
+              {isSynthesizing ? 'Almost done' : '4 independent judges'}
             </span>
           </div>
 
