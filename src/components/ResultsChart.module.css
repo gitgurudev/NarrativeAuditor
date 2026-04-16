@@ -1,0 +1,367 @@
+/* ResultsChart.module.css */
+
+/* ── Overlay ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 15, 30, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: overlayIn 0.2s ease both;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Modal shell ── */
+.modal {
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 16px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+  animation: modalIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+  background: #f4f6fb;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.94) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── Action bar (outside the chart) ── */
+.actionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: #1e1e2e;
+  border-radius: 16px 16px 0 0;
+}
+
+.actionLabel {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.55);
+  font-weight: 500;
+}
+
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btnSave {
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btnSave:hover { opacity: 0.85; }
+
+.btnClose {
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.5);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+.btnClose:hover { color: #fff; }
+
+/* ── Exportable chart ── */
+.chart {
+  background: #ffffff;
+  padding: 2rem 2.25rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ── Chart header ── */
+.chartHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid #e8ecf4;
+}
+
+.brandCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.scriptName {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  padding: 0.2rem 0.6rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brandIcon {
+  font-size: 1.3rem;
+  color: #6366f1;
+}
+
+.brandName {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #1e1e2e;
+  letter-spacing: -0.02em;
+}
+
+.brandTagline {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  font-weight: 500;
+  padding: 0.15rem 0.55rem;
+  background: #f1f5f9;
+  border-radius: 99px;
+  border: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.verdictBadge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.3rem 0.85rem;
+  border-radius: 99px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+/* ── Score hero ── */
+.scoreHero {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.scoreHeroNum {
+  font-size: 4rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.scoreHeroDenom {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #94a3b8;
+  vertical-align: super;
+  margin-left: 2px;
+}
+
+.scoreHeroLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 0.3rem;
+}
+
+/* ── Sections ── */
+.chartSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.chartSectionTitle {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e8ecf4;
+}
+
+/* ── Bar rows ── */
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: 120px 1fr 52px 70px;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.barLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.barIcon {
+  font-size: 0.9rem;
+}
+
+.barName {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.barTrack {
+  height: 10px;
+  background: #f1f5f9;
+  border-radius: 99px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 99px;
+}
+
+.barScore {
+  font-size: 1rem;
+  font-weight: 900;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.barScoreDenom {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  font-weight: 500;
+  margin-left: 1px;
+}
+
+.barRuns {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  justify-content: flex-end;
+}
+
+.barRunsLabel {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.barRunsVal {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.12rem 0.45rem;
+  border-radius: 99px;
+}
+
+/* ── Consensus matrix ── */
+.matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.matrixRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.matrixLabel {
+  width: 110px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.matrixDots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.matrixDot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 48px;
+  padding: 0.35rem 0.4rem 0.3rem;
+  border-radius: 8px;
+  border: 1px solid;
+}
+
+.matrixDotRun {
+  font-size: 0.55rem;
+  font-weight: 700;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+.matrixDotVal {
+  font-size: 0.95rem;
+  font-weight: 900;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Footer ── */
+.chartFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e8ecf4;
+}
+
+.footerMethod {
+  font-size: 0.65rem;
+  color: #64748b;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.footerRef {
+  font-size: 0.6rem;
+  color: #94a3b8;
+  font-style: italic;
+}

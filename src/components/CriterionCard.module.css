@@ -1,0 +1,159 @@
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.4rem 1.4rem;  /* top padding replaces the accent div space */
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  /* NO overflow:hidden — was clipping the consensus avg text */
+  position: relative;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+/* ── Coloured top strip via ::before (no overflow:hidden needed) ── */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.card_clarity::before    { background: linear-gradient(90deg, #6366f1, #818cf8); }
+.card_creativity::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.card_engagement::before { background: linear-gradient(90deg, #ec4899, #f472b6); }
+.card_coherence::before  { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+
+/* ── Header ── */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.iconWrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.iconWrap_clarity    { background: #eef2ff; color: #6366f1; }
+.iconWrap_creativity { background: #f5f3ff; color: #8b5cf6; }
+.iconWrap_engagement { background: #fdf2f8; color: #ec4899; }
+.iconWrap_coherence  { background: #eff6ff; color: #3b82f6; }
+
+.labelGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  flex: 1;
+}
+
+.label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.scoreRow {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  line-height: 1;
+}
+
+.score {
+  font-size: 2.2rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.scoreDenom {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.score_clarity    { color: #6366f1; }
+.score_creativity { color: #8b5cf6; }
+.score_engagement { color: #ec4899; }
+.score_coherence  { color: #3b82f6; }
+
+/* ── Progress bar ── */
+.barTrack {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-subtle);
+  border-radius: 99px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bar_clarity    { background: linear-gradient(90deg, #6366f1, #818cf8); }
+.bar_creativity { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.bar_engagement { background: linear-gradient(90deg, #ec4899, #f472b6); }
+.bar_coherence  { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+
+/* ── Consensus row ── */
+.consensus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.consensusLabel {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+}
+
+.consensusDivider {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.avg {
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+  padding: 0.18rem 0.55rem;
+  border-radius: 99px;
+}
+
+.avg_clarity    { color: #6366f1; background: #eef2ff; }
+.avg_creativity { color: #8b5cf6; background: #f5f3ff; }
+.avg_engagement { color: #ec4899; background: #fdf2f8; }
+.avg_coherence  { color: #3b82f6; background: #eff6ff; }
+
+/* ── Explanation ── */
+.explanation {
+  font-size: 0.845rem;
+  color: var(--text-secondary);
+  line-height: 1.72;
+}

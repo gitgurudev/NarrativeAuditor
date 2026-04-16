@@ -1,0 +1,374 @@
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  box-shadow: var(--shadow-md);
+  animation: fadeUp 0.35s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Top bar ── */
+.topBar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.3rem;
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.pctWrap {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.pct {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.pctLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+/* ── Progress bar ── */
+.track {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-subtle);
+  border-radius: 99px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.fill {
+  height: 100%;
+  background: var(--gradient-brand);
+  border-radius: 99px;
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fillSynth {
+  background: linear-gradient(90deg, var(--accent), var(--success));
+}
+
+/* ── Stepper ── */
+.stepper {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.stepItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 48px;
+  position: relative;
+}
+
+.stepLine {
+  position: absolute;
+  top: 13px;
+  right: 50%;
+  left: -50%;
+  height: 2px;
+  background: var(--border);
+  z-index: 0;
+  transition: background 0.5s ease;
+}
+
+.stepLineFilled {
+  background: var(--accent);
+}
+
+.stepDot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.dot_done {
+  background: var(--success);
+  color: white;
+  box-shadow: 0 0 0 3px var(--success-soft);
+}
+
+.dot_processing {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 0 12px rgba(99,102,241,0.35);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+.dot_pending {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  border: 2px solid var(--border);
+}
+
+.dot_error {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 2px solid rgba(220,38,38,0.3);
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--accent-soft), 0 0 12px rgba(99,102,241,0.35); }
+  50%       { box-shadow: 0 0 0 6px var(--accent-soft), 0 0 20px rgba(99,102,241,0.5);  }
+}
+
+.dotSpinner {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.stepLabel {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stepLabelActive {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+/* ── Active section card ── */
+.activeCard {
+  background: linear-gradient(135deg, #f0f4ff 0%, #f5f3ff 100%);
+  border: 1.5px solid rgba(99,102,241,0.2);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.activeCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.activePulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+  animation: pulseDot 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
+}
+
+.activeTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent-dark);
+  flex: 1;
+}
+
+.activeBadge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: white;
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 99px;
+  padding: 0.15rem 0.6rem;
+  white-space: nowrap;
+}
+
+/* ── Criterion chips ── */
+.criteriaGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+}
+
+@media (max-width: 480px) {
+  .criteriaGrid { grid-template-columns: 1fr; }
+}
+
+.criterionChip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  transition: all var(--transition);
+}
+
+.chipRunning {
+  border-left: 3px solid var(--cc);
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { background: white; }
+  50%       { background: #fafbff; }
+}
+
+.chipDone {
+  border-left: 3px solid var(--cc);
+}
+
+.chipIcon {
+  font-size: 0.9rem;
+  color: var(--cc);
+  flex-shrink: 0;
+}
+
+.chipLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.chipScore {
+  font-size: 0.8rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--radius-xs);
+}
+
+.chipSpinner {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid color-mix(in srgb, var(--cc) 20%, transparent);
+  border-top-color: var(--cc);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.miniRuns {
+  display: flex;
+  gap: 2px;
+  margin-left: 2px;
+}
+
+.miniDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0.8;
+}
+
+/* ── Completed sections ── */
+.completedSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.completedHeader {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.completedList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.completedRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+}
+
+.completedLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  min-width: 64px;
+}
+
+.completedScores {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.completedScore {
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
