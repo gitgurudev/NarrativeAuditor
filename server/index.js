@@ -10,6 +10,7 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import authRoutes     from './routes/auth.js';
 import evaluateRoutes from './routes/evaluate.js';
+import judgeRoutes    from './routes/judge.js';
 import { resolveSrvUri } from './utils/dns.js';
 
 async function startServer() {
@@ -23,11 +24,12 @@ async function startServer() {
   ].filter(Boolean);
 
   app.use(cors({ origin: allowedOrigins, credentials: true }));
-  app.use(express.json());
+  app.use(express.json({ limit: '4mb' }));  // chunks can be large
 
   app.use('/api/auth',     authRoutes);
   app.use('/api/evaluate', evaluateRoutes);
-  app.get('/api/health',   (_, res) => res.json({ status: 'ok', service: 'NarrativeAuditor' }));
+  app.use('/api',          judgeRoutes);    // judge-criterion, synthesize, analyze-*
+  app.get('/api/health',   (_, res) => res.json({ status: 'ok', service: 'NarrativeAuditor', model: 'google/gemini-2.0-flash-exp:free' }));
 
   try {
     let uri = process.env.MONGODB_URI;
