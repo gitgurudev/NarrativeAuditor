@@ -8,7 +8,7 @@
 //  Upgrade 3 — Consensus scoring (3 parallel runs, averaged)
 
 const OR_URL  = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL   = 'mistralai/mixtral-8x7b-instruct';
+const MODEL   = 'google/gemma-4-31b-it:free';
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 
 const CRITERIA = ['clarity', 'creativity', 'engagement', 'coherence'];
@@ -75,7 +75,7 @@ You are evaluating section ${chunkMeta.chunkIndex + 1} of ${chunkMeta.totalChunk
 
 SCREENPLAY TEXT:
 """
-${text.slice(0, 12000)}
+${text.slice(0, 6000)}
 """
 
 Apply the Netflix LLM-as-a-Judge tiered rationale method:
