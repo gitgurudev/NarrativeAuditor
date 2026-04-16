@@ -1,28 +1,26 @@
 // File: src/services/api.js
 //
-// Netflix-style LLM-as-a-Judge — calls OpenRouter directly from the browser.
-// Model: google/gemini-2.0-flash-exp:free (1M context, free tier)
+// Netflix-style LLM-as-a-Judge — Google Gemini API (free tier via AI Studio)
+// Model: gemini-2.0-flash  |  Free: 1,500 req/day · 1M tokens/min
 //
 //  Upgrade 1 — Per-criterion judges (clarity / creativity / engagement / coherence)
 //  Upgrade 2 — Tiered rationale (reasoning → summary → score)
 //  Upgrade 3 — Consensus scoring (3 parallel runs, averaged)
 
-const OR_URL  = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL   = 'google/gemma-4-31b-it:free';
-const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+const MODEL      = 'gemini-2.0-flash';
+const API_KEY    = import.meta.env.VITE_GEMINI_API_KEY;
 
 const CRITERIA = ['clarity', 'creativity', 'engagement', 'coherence'];
 
-// ── OpenRouter client ─────────────────────────────────────────────────────────
+// ── Gemini client (OpenAI-compatible endpoint) ────────────────────────────────
 
 async function chat(messages, opts = {}) {
-  const res = await fetch(OR_URL, {
+  const res = await fetch(GEMINI_URL, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${API_KEY}`,
       'Content-Type':  'application/json',
-      'HTTP-Referer':  'https://narrative-auditor.onrender.com',
-      'X-Title':       'NarrativeAuditor',
     },
     body: JSON.stringify({
       model:       MODEL,
@@ -34,7 +32,7 @@ async function chat(messages, opts = {}) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(`OpenRouter ${res.status}: ${err.error?.message || res.statusText}`);
+    throw new Error(`Gemini ${res.status}: ${err.error?.message || res.statusText}`);
   }
 
   const data = await res.json();
