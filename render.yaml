@@ -1,36 +1,12 @@
 services:
-  # ── Backend (Node.js Web Service) ──────────────────────────────────────────
-  - type: web
-    name: narrative-auditor-api
-    env: node
-    rootDir: server
-    buildCommand: npm install
-    startCommand: node index.js
-    envVars:
-      - key: MONGODB_URI
-        sync: false        # set manually in Render dashboard
-      - key: JWT_SECRET
-        sync: false
-      - key: OPENROUTER_API_KEY
-        sync: false
-      - key: MAIL_USER
-        sync: false
-      - key: MAIL_PASS
-        sync: false
-      - key: FRONTEND_URL
-        value: https://narrative-auditor.onrender.com
-      - key: PORT
-        value: 5001
-
-  # ── Frontend (Static Site) ─────────────────────────────────────────────────
   - type: web
     name: narrative-auditor
     env: static
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
     envVars:
-      - key: VITE_API_BASE_URL
-        value: https://narrative-auditor-api.onrender.com
+      - key: VITE_OPENROUTER_API_KEY
+        sync: false    # set manually in Render dashboard
     headers:
       - path: /assets/*
         name: Cache-Control
