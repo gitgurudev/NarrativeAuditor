@@ -64,83 +64,42 @@ function parseJSON(raw) {
   }
 }
 
-// ── Criterion prompts ─────────────────────────────────────────────────────────
+// ── Combined chunk evaluation — 1 call for all 4 criteria ────────────────────
+// Single API call per chunk instead of 4. 4x fewer tokens = 4x faster.
 
-const CRITERION_PROMPTS = {
-  clarity: `You are an expert screenplay analyst specialising in CLARITY.
-Clarity means: clear scene transitions, unambiguous character goals, readable action lines, logical information flow.`,
-
-  creativity: `You are an expert screenplay analyst specialising in CREATIVITY.
-Creativity means: original premise, unexpected story choices, fresh character dynamics, subverted genre expectations.`,
-
-  engagement: `You are an expert screenplay analyst specialising in ENGAGEMENT.
-Engagement means: pacing, tension, hooks, the reader's desire to turn the page. Cold opens, set-pieces, momentum.`,
-
-  coherence: `You are an expert screenplay analyst specialising in COHERENCE.
-Coherence means: internal logic, cause-and-effect chains, consistent character behaviour, resolved subplots, world-rule consistency.`,
-};
-
-// ── Single criterion call (tiered rationale) ──────────────────────────────────
-
-async function callCriterionJudge(text, criterion, chunkMeta) {
-  const systemPrompt = CRITERION_PROMPTS[criterion];
-
-  const userPrompt = `
-You are evaluating section ${chunkMeta.chunkIndex + 1} of ${chunkMeta.totalChunks} (pages ${chunkMeta.startPage}–${chunkMeta.endPage}) of a screenplay.
+export async function evaluateChunk(chunk, totalChunks) {
+  const prompt = `You are a senior screenplay analyst. Evaluate section ${chunk.index + 1} of ${totalChunks} (pages ${chunk.startPage}–${chunk.endPage}).
 
 SCREENPLAY TEXT:
 """
-${text.slice(0, 3000)}
+${chunk.text.slice(0, 3000)}
 """
 
-Apply the Netflix LLM-as-a-Judge tiered rationale method:
+Score each criterion 1–10 and give a 2-sentence summary for each.
 
-Step 1 — REASONING: Write 150–250 words of detailed analytical reasoning about ${criterion} in this section. Be specific, cite page ranges or scene moments.
-
-Step 2 — SUMMARY: Condense your reasoning into exactly 2 sentences a producer could read.
-
-Step 3 — SCORE: Give a score from 1–10 for ${criterion} in this section.
+Criteria:
+- CLARITY: clear scene transitions, unambiguous goals, readable action lines
+- CREATIVITY: original premise, unexpected choices, fresh character dynamics
+- ENGAGEMENT: pacing, tension, hooks, momentum
+- COHERENCE: internal logic, cause-and-effect, consistent character behaviour
 
 Respond ONLY with valid JSON, no markdown:
 {
-  "reasoning": "...",
-  "summary": "...",
-  "score": <number 1-10>
-}`.trim();
+  "clarity":    { "score": <1-10>, "summary": "2 sentences", "reasoning": "3-4 sentences" },
+  "creativity": { "score": <1-10>, "summary": "2 sentences", "reasoning": "3-4 sentences" },
+  "engagement": { "score": <1-10>, "summary": "2 sentences", "reasoning": "3-4 sentences" },
+  "coherence":  { "score": <1-10>, "summary": "2 sentences", "reasoning": "3-4 sentences" }
+}`;
 
-  const raw    = await chat([
-    { role: 'system', content: systemPrompt },
-    { role: 'user',   content: userPrompt },
-  ], { temperature: 0.25, max_tokens: 800 });
-
+  const raw    = await chat([{ role: 'user', content: prompt }], { temperature: 0.3, max_tokens: 1200 });
   const parsed = parseJSON(raw);
-  return {
-    score:     Math.min(10, Math.max(1, Number(parsed.score))),
-    reasoning: parsed.reasoning,
-    summary:   parsed.summary,
-  };
-}
-
-// ── Public: evaluate one chunk ────────────────────────────────────────────────
-// Sequential calls (not parallel) to stay within free tier rate limits.
-// 4 calls per chunk, one at a time.
-
-export async function evaluateChunk(chunk, totalChunks) {
-  const chunkMeta = {
-    chunkIndex: chunk.index,
-    startPage:  chunk.startPage,
-    endPage:    chunk.endPage,
-    totalChunks,
-  };
 
   const scores = {}, notes = {}, reasoning = {}, consensus = {};
-
-  for (const criterion of CRITERIA) {
-    const r = await callCriterionJudge(chunk.text, criterion, chunkMeta);
-    scores[criterion]    = r.score;
-    notes[criterion]     = r.summary;
-    reasoning[criterion] = r.reasoning;
-    consensus[criterion] = [r.score];
+  for (const c of CRITERIA) {
+    scores[c]    = Math.min(10, Math.max(1, Number(parsed[c]?.score ?? 5)));
+    notes[c]     = parsed[c]?.summary  ?? '';
+    reasoning[c] = parsed[c]?.reasoning ?? '';
+    consensus[c] = [scores[c]];
   }
 
   const chunkSummary = `Pages ${chunk.startPage}–${chunk.endPage}: ` +
