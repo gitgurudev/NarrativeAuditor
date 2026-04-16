@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
-const USE_MOCK  = import.meta.env.VITE_MOCK_API === 'true';
-
-// In mock mode — simulate a logged-in user, no backend needed
-const MOCK_USER = { id: 'mock', username: 'demo_user', email: 'demo@example.com', evaluationsUsed: 0 };
 
 export function useAuth() {
   const [user,    setUser]    = useState(null);   // null = not loaded yet
@@ -13,8 +9,6 @@ export function useAuth() {
 
   // On mount: restore session from localStorage
   useEffect(() => {
-    if (USE_MOCK) { setUser(MOCK_USER); setLoading(false); return; }
-
     const token = localStorage.getItem('na_token');
     if (!token) { setLoading(false); return; }
 
@@ -66,8 +60,6 @@ export function useAuth() {
    * Returns { ok, remaining } or throws with limitReached flag.
    */
   async function startEvaluation(pdfFile) {
-    if (USE_MOCK) return { ok: true, remaining: 2 - (user.evaluationsUsed + 1) };
-
     const token = localStorage.getItem('na_token');
     const form  = new FormData();
     form.append('pdf', pdfFile);
@@ -83,7 +75,6 @@ export function useAuth() {
       err.limitReached = data.limitReached || false;
       throw err;
     }
-    // Update local user count
     setUser((u) => ({ ...u, evaluationsUsed: data.evaluationsUsed }));
     return data;
   }
