@@ -5,7 +5,7 @@ services:
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
     envVars:
-      - key: VITE_GEMINI_API_KEY
+      - key: VITE_GROQ_API_KEY
         sync: false    # set manually in Render dashboard
     headers:
       - path: /assets/*

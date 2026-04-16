@@ -1,57 +1,43 @@
 // File: src/services/api.js
 //
-// Netflix-style LLM-as-a-Judge — Google Gemini API (free tier via AI Studio)
-// Model: gemini-2.0-flash  |  Free: 1,500 req/day · 1M tokens/min
+// Netflix-style LLM-as-a-Judge — Groq API (free tier)
+// Model: llama-3.3-70b-versatile  |  Free: 14,400 req/day · 500K tokens/day
 //
 //  Upgrade 1 — Per-criterion judges (clarity / creativity / engagement / coherence)
 //  Upgrade 2 — Tiered rationale (reasoning → summary → score)
-//  Upgrade 3 — Consensus scoring (3 parallel runs, averaged)
 
-const MODEL   = 'gemini-1.5-flash';
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const MODEL    = 'llama-3.3-70b-versatile';
+const API_KEY  = import.meta.env.VITE_GROQ_API_KEY;
 
 const CRITERIA = ['clarity', 'creativity', 'engagement', 'coherence'];
 
-// ── Gemini native API client ──────────────────────────────────────────────────
+// ── Groq client (OpenAI-compatible) ──────────────────────────────────────────
 
 async function chat(messages, opts = {}) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
-
-  // Convert OpenAI-style messages to Gemini format
-  // system message → systemInstruction, rest → contents
-  const systemMsg = messages.find(m => m.role === 'system');
-  const userMsgs  = messages.filter(m => m.role !== 'system');
-
-  const body = {
-    contents: userMsgs.map(m => ({
-      role:  m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
-    })),
-    generationConfig: {
-      temperature:     opts.temperature ?? 0.3,
-      maxOutputTokens: opts.max_tokens  ?? 1500,
+  const res = await fetch(GROQ_URL, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${API_KEY}`,
+      'Content-Type':  'application/json',
     },
-  };
-
-  if (systemMsg) {
-    body.system_instruction = { parts: [{ text: systemMsg.content }] };
-  }
-
-  const res = await fetch(url, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(body),
+    body: JSON.stringify({
+      model:       MODEL,
+      messages,
+      temperature: opts.temperature ?? 0.3,
+      max_tokens:  opts.max_tokens  ?? 1500,
+    }),
   });
 
   if (!res.ok) {
     const errBody = await res.json().catch(() => ({}));
     const msg = errBody.error?.message || res.statusText;
-    console.error('[Gemini] error →', res.status, msg, errBody);
-    throw new Error(`Gemini ${res.status}: ${msg}`);
+    console.error('[Groq] error →', res.status, msg);
+    throw new Error(`Groq ${res.status}: ${msg}`);
   }
 
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+  return data.choices?.[0]?.message?.content ?? '';
 }
 
 function parseJSON(raw) {
