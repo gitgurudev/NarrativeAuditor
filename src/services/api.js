@@ -7,44 +7,64 @@
 //  Upgrade 2 — Tiered rationale (reasoning → summary → score)
 //  Upgrade 3 — Consensus scoring (3 parallel runs, averaged)
 
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
-const MODEL      = 'gemini-2.0-flash';
-const API_KEY    = import.meta.env.VITE_GEMINI_API_KEY;
+const MODEL   = 'gemini-1.5-flash';
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 const CRITERIA = ['clarity', 'creativity', 'engagement', 'coherence'];
 
-// ── Gemini client (OpenAI-compatible endpoint) ────────────────────────────────
+// ── Gemini native API client ──────────────────────────────────────────────────
 
 async function chat(messages, opts = {}) {
-  const res = await fetch(GEMINI_URL, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${API_KEY}`,
-      'Content-Type':  'application/json',
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
+
+  // Convert OpenAI-style messages to Gemini format
+  // system message → systemInstruction, rest → contents
+  const systemMsg = messages.find(m => m.role === 'system');
+  const userMsgs  = messages.filter(m => m.role !== 'system');
+
+  const body = {
+    contents: userMsgs.map(m => ({
+      role:  m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    })),
+    generationConfig: {
+      temperature:     opts.temperature ?? 0.3,
+      maxOutputTokens: opts.max_tokens  ?? 1500,
     },
-    body: JSON.stringify({
-      model:       MODEL,
-      messages,
-      temperature: opts.temperature ?? 0.3,
-      max_tokens:  opts.max_tokens  ?? 1500,
-    }),
+  };
+
+  if (systemMsg) {
+    body.system_instruction = { parts: [{ text: systemMsg.content }] };
+  }
+
+  const res = await fetch(url, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(body),
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(`Gemini ${res.status}: ${err.error?.message || res.statusText}`);
+    const errBody = await res.json().catch(() => ({}));
+    const msg = errBody.error?.message || res.statusText;
+    console.error('[Gemini] error →', res.status, msg, errBody);
+    throw new Error(`Gemini ${res.status}: ${msg}`);
   }
 
   const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? '';
+  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 }
 
 function parseJSON(raw) {
-  const cleaned = raw
-    .replace(/^```(?:json)?\s*/i, '')
-    .replace(/\s*```$/, '')
-    .trim();
-  return JSON.parse(cleaned);
+  try {
+    const cleaned = raw
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '')
+      .trim();
+    return JSON.parse(cleaned);
+  } catch (e) {
+    console.error('[parseJSON] failed to parse:', raw.slice(0, 300));
+    throw new Error(`Model returned invalid JSON: ${e.message}`);
+  }
 }
 
 // ── Criterion prompts ─────────────────────────────────────────────────────────
@@ -104,22 +124,9 @@ Respond ONLY with valid JSON, no markdown:
   };
 }
 
-// ── Consensus scoring — 3 parallel runs ──────────────────────────────────────
-
-async function evaluateCriterionWithConsensus(text, criterion, chunkMeta) {
-  const [r1, r2, r3] = await Promise.all([
-    callCriterionJudge(text, criterion, chunkMeta),
-    callCriterionJudge(text, criterion, chunkMeta),
-    callCriterionJudge(text, criterion, chunkMeta),
-  ]);
-
-  const runs = [r1.score, r2.score, r3.score];
-  const avg  = Math.round((runs.reduce((s, v) => s + v, 0) / 3) * 10) / 10;
-
-  return { criterion, score: avg, runs, reasoning: r1.reasoning, summary: r1.summary };
-}
-
 // ── Public: evaluate one chunk ────────────────────────────────────────────────
+// Sequential calls (not parallel) to stay within free tier rate limits.
+// 4 calls per chunk, one at a time.
 
 export async function evaluateChunk(chunk, totalChunks) {
   const chunkMeta = {
@@ -129,18 +136,14 @@ export async function evaluateChunk(chunk, totalChunks) {
     totalChunks,
   };
 
-  const results = await Promise.all(
-    CRITERIA.map((criterion) =>
-      evaluateCriterionWithConsensus(chunk.text, criterion, chunkMeta)
-    )
-  );
-
   const scores = {}, notes = {}, reasoning = {}, consensus = {};
-  for (const r of results) {
-    scores[r.criterion]    = r.score;
-    notes[r.criterion]     = r.summary;
-    reasoning[r.criterion] = r.reasoning;
-    consensus[r.criterion] = r.runs;
+
+  for (const criterion of CRITERIA) {
+    const r = await callCriterionJudge(chunk.text, criterion, chunkMeta);
+    scores[criterion]    = r.score;
+    notes[criterion]     = r.summary;
+    reasoning[criterion] = r.reasoning;
+    consensus[criterion] = [r.score];
   }
 
   const chunkSummary = `Pages ${chunk.startPage}–${chunk.endPage}: ` +
@@ -192,26 +195,12 @@ Respond ONLY with valid JSON, no markdown:
   "improvements": ["...", "...", "...", "..."]
 }`.trim();
 
-  // 3-run consensus on synthesis too
-  const synth = async () => {
-    const raw    = await chat([{ role: 'user', content: prompt }], { temperature: 0.3, max_tokens: 1200 });
-    const parsed = parseJSON(raw);
-    for (const k of CRITERIA) {
-      if (parsed[k]) parsed[k].score = Math.min(10, Math.max(1, Number(parsed[k].score)));
-    }
-    return parsed;
-  };
-
-  const [s1, s2, s3] = await Promise.all([synth(), synth(), synth()]);
-
-  const final = { ...s1 };
-  for (const key of CRITERIA) {
-    const avg = Math.round(
-      ([s1, s2, s3].reduce((sum, s) => sum + s[key].score, 0) / 3) * 10
-    ) / 10;
-    final[key] = { ...s1[key], score: avg, consensusRuns: [s1[key].score, s2[key].score, s3[key].score] };
+  const raw    = await chat([{ role: 'user', content: prompt }], { temperature: 0.3, max_tokens: 1200 });
+  const parsed = parseJSON(raw);
+  for (const k of CRITERIA) {
+    if (parsed[k]) parsed[k].score = Math.min(10, Math.max(1, Number(parsed[k].score)));
   }
-  return final;
+  return parsed;
 }
 
 // ── Public: Script Intelligence (4 parallel analyses) ────────────────────────
@@ -339,12 +328,11 @@ Return ONLY valid JSON:
   ]
 }`.trim();
 
-  const [characters, plotGaps, toneArc, sceneImprovements] = await Promise.all([
-    chat([{ role: 'user', content: characterPrompt }], { temperature: 0.2, max_tokens: 900 }).then(parseJSON),
-    chat([{ role: 'user', content: plotGapPrompt   }], { temperature: 0.2, max_tokens: 900 }).then(parseJSON),
-    chat([{ role: 'user', content: tonePrompt      }], { temperature: 0.3, max_tokens: 900 }).then(parseJSON),
-    chat([{ role: 'user', content: improvPrompt    }], { temperature: 0.4, max_tokens: 1400 }).then(parseJSON),
-  ]);
+  // Sequential to respect free tier rate limits
+  const characters       = parseJSON(await chat([{ role: 'user', content: characterPrompt }], { temperature: 0.2, max_tokens: 900 }));
+  const plotGaps         = parseJSON(await chat([{ role: 'user', content: plotGapPrompt   }], { temperature: 0.2, max_tokens: 900 }));
+  const toneArc          = parseJSON(await chat([{ role: 'user', content: tonePrompt      }], { temperature: 0.3, max_tokens: 900 }));
+  const sceneImprovements = parseJSON(await chat([{ role: 'user', content: improvPrompt   }], { temperature: 0.4, max_tokens: 1400 }));
 
   return { characters, plotGaps, toneArc, sceneImprovements };
 }
