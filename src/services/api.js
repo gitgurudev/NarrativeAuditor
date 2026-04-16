@@ -7,14 +7,14 @@
 //  Upgrade 2 — Tiered rationale (reasoning → summary → score)
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL    = 'llama-3.3-70b-versatile';
+const MODEL    = 'llama-3.1-8b-instant';   // 20k TPM free tier (vs 12k for 70b)
 const API_KEY  = import.meta.env.VITE_GROQ_API_KEY;
 
 const CRITERIA = ['clarity', 'creativity', 'engagement', 'coherence'];
 
-// ── Groq client (OpenAI-compatible) ──────────────────────────────────────────
+// ── Groq client with auto-retry on 429 ───────────────────────────────────────
 
-async function chat(messages, opts = {}) {
+async function chat(messages, opts = {}, _retry = 0) {
   const res = await fetch(GROQ_URL, {
     method: 'POST',
     headers: {
@@ -25,9 +25,20 @@ async function chat(messages, opts = {}) {
       model:       MODEL,
       messages,
       temperature: opts.temperature ?? 0.3,
-      max_tokens:  opts.max_tokens  ?? 1500,
+      max_tokens:  opts.max_tokens  ?? 800,
     }),
   });
+
+  // Auto-retry on rate limit — Groq tells us exact wait time
+  if (res.status === 429 && _retry < 4) {
+    const errBody = await res.json().catch(() => ({}));
+    const retryMsg = errBody.error?.message ?? '';
+    const match    = retryMsg.match(/try again in ([\d.]+)s/i);
+    const waitMs   = match ? Math.ceil(parseFloat(match[1]) * 1000) + 500 : (2 ** _retry) * 3000;
+    console.warn(`[Groq] 429 — waiting ${waitMs}ms then retry ${_retry + 1}/4`);
+    await new Promise(r => setTimeout(r, waitMs));
+    return chat(messages, opts, _retry + 1);
+  }
 
   if (!res.ok) {
     const errBody = await res.json().catch(() => ({}));
@@ -79,7 +90,7 @@ You are evaluating section ${chunkMeta.chunkIndex + 1} of ${chunkMeta.totalChunk
 
 SCREENPLAY TEXT:
 """
-${text.slice(0, 6000)}
+${text.slice(0, 3000)}
 """
 
 Apply the Netflix LLM-as-a-Judge tiered rationale method:
