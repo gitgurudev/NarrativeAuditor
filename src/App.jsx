@@ -4,6 +4,8 @@ import PdfUploader     from './components/PdfUploader.jsx';
 import ChunkProgress   from './components/ChunkProgress.jsx';
 import ResultsPanel    from './components/ResultsPanel.jsx';
 import ScriptAnalysis  from './components/ScriptAnalysis.jsx';
+import AuthModal       from './components/AuthModal.jsx';
+import { useAuth }     from './hooks/useAuth.js';
 import { extractPdfText }       from './utils/pdfParser.js';
 import { buildChunks, estimateWordCount } from './utils/chunker.js';
 import { evaluateChunk, synthesizeEvaluation, analyzeScript } from './services/api.js';
@@ -20,6 +22,8 @@ import styles from './App.module.css';
  */
 
 function App() {
+  const { user, loading: authLoading, logout, startEvaluation } = useAuth();
+
   // ── PDF / extraction state ─────────────────────────────────────────────
   const [phase,           setPhase]           = useState('idle');
   const [pdfInfo,         setPdfInfo]         = useState(null);   // { name, pageCount, totalChunks, wordCount }
@@ -43,6 +47,7 @@ function App() {
     setExtractProgress(0);
 
     try {
+      setPdfFile(file);
       const { pageCount, pages } = await extractPdfText(file, (current, total) => {
         setExtractProgress(Math.round((current / total) * 100));
       });
@@ -69,6 +74,7 @@ function App() {
   const handleReset = useCallback(() => {
     setPhase('idle');
     setPdfInfo(null);
+    setPdfFile(null);
     setChunks([]);
     setChunkStatuses([]);
     setChunkResults([]);
@@ -77,10 +83,22 @@ function App() {
     setError(null);
   }, []);
 
+  // Keep original PDF File object so we can upload it to backend for email
+  const [pdfFile, setPdfFile] = useState(null);
+
   const handleEvaluate = useCallback(async () => {
     if (!chunks.length) return;
     setError(null);
     setResults(null);
+
+    // ── Gate: send PDF to backend, check limit, trigger email ──────────
+    try {
+      await startEvaluation(pdfFile);
+    } catch (err) {
+      setError(err.message);
+      if (err.limitReached) setPhase('idle');
+      return;
+    }
 
     // ── Phase 1: evaluate each chunk sequentially ──────────────────────
     setPhase('evaluating');
@@ -126,15 +144,20 @@ function App() {
       setError(`Synthesis failed: ${err.message}`);
       setPhase('ready');
     }
-  }, [chunks, pdfInfo]);
+  }, [chunks, pdfInfo, pdfFile, startEvaluation]);
 
   // ── Render ─────────────────────────────────────────────────────────────
   const isEvaluating  = phase === 'evaluating';
   const isSynthesizing = phase === 'synthesizing';
   const isBusy        = isEvaluating || isSynthesizing || phase === 'extracting';
 
+  if (authLoading) return null; // brief flash while checking stored token
+
   return (
     <div className={styles.app}>
+
+      {/* ── Auth gate ── */}
+      {!user && <AuthModal onSuccess={() => {}} />}
 
       {/* ── Header ── */}
       <header className={styles.header}>
@@ -146,9 +169,23 @@ function App() {
               <p className={styles.brandTagline}>AI-powered script &amp; story evaluation</p>
             </div>
           </div>
-          <div className={styles.headerBadge}>
-            <span className={styles.badgeDot} aria-hidden="true" />
-            Chunk-based · 4 criteria
+          <div className={styles.headerRight}>
+            {user && (
+              <div className={styles.userBadge}>
+                <span className={styles.userAvatar}>{user.username[0].toUpperCase()}</span>
+                <div className={styles.userInfo}>
+                  <span className={styles.userName}>{user.username}</span>
+                  <span className={styles.userQuota}>
+                    {2 - user.evaluationsUsed} eval{2 - user.evaluationsUsed !== 1 ? 's' : ''} left
+                  </span>
+                </div>
+                <button className={styles.logoutBtn} onClick={logout} title="Sign out">↩</button>
+              </div>
+            )}
+            <div className={styles.headerBadge}>
+              <span className={styles.badgeDot} aria-hidden="true" />
+              Chunk-based · 4 criteria
+            </div>
           </div>
         </div>
       </header>

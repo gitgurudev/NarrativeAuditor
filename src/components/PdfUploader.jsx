@@ -9,6 +9,9 @@ const CRITERIA = [
   { icon: '◈', label: 'Coherence',  color: '#3b82f6', bg: '#eff6ff' },
 ];
 
+const MAX_FILE_MB  = 50;
+const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024;
+
 const FEATURES = [
   { icon: '⬡', title: 'Character Tracking',  desc: 'Consistency across every scene' },
   { icon: '◉', title: 'Plot Gap Detection',   desc: 'Finds unresolved threads' },
@@ -27,9 +30,19 @@ function PdfUploader({
 }) {
   const inputRef  = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [fileError,  setFileError]  = useState(null);
 
   function handleFile(file) {
-    if (!file || file.type !== 'application/pdf') return;
+    setFileError(null);
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      setFileError('Only PDF files are supported. Please upload a .pdf file.');
+      return;
+    }
+    if (file.size > MAX_FILE_BYTES) {
+      setFileError(`File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed size is ${MAX_FILE_MB} MB.`);
+      return;
+    }
     onFileSelected(file);
   }
 
@@ -202,6 +215,13 @@ function PdfUploader({
         onChange={handleInputChange}
         aria-hidden="true"
       />
+
+      {fileError && (
+        <div className={styles.fileError} role="alert">
+          <span>⚠ {fileError}</span>
+          <button className={styles.fileErrorDismiss} onClick={() => setFileError(null)}>✕</button>
+        </div>
+      )}
 
       {/* ── Feature highlights ── */}
       <div className={styles.featuresGrid}>

@@ -90,13 +90,74 @@
   background: #34d399;
   border-radius: 50%;
   box-shadow: 0 0 6px #34d399;
-  animation: pulse 2s ease-in-out infinite;
+  animation: glowPulse 2s ease-in-out infinite;
 }
 
-@keyframes pulse {
+@keyframes glowPulse {
   0%, 100% { box-shadow: 0 0 6px #34d399; }
   50%       { box-shadow: 0 0 12px #34d399, 0 0 20px rgba(52,211,153,0.4); }
 }
+
+/* ── Header right (badge + user) ── */
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.userBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 99px;
+  padding: 0.28rem 0.7rem 0.28rem 0.35rem;
+}
+
+.userAvatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.userName {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.userQuota {
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.65);
+  font-weight: 500;
+}
+
+.logoutBtn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0 0.1rem;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.logoutBtn:hover { color: #fff; }
 
 /* ── Main ── */
 .main {
