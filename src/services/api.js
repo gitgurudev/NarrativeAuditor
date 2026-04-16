@@ -8,7 +8,7 @@
 //  Upgrade 3 — Consensus scoring (3 parallel runs, averaged)
 
 const OR_URL  = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL   = 'google/gemma-4-31b-it:free';
+const MODEL   = 'mistralai/mixtral-8x7b-instruct';
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 
 const CRITERIA = ['clarity', 'creativity', 'engagement', 'coherence'];
