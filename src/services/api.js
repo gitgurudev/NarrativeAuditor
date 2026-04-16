@@ -6,9 +6,9 @@
 //  Upgrade 1 — Per-criterion judges (clarity / creativity / engagement / coherence)
 //  Upgrade 2 — Tiered rationale (reasoning → summary → score)
 
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL    = 'llama-3.1-8b-instant';   // 20k TPM free tier (vs 12k for 70b)
-const API_KEY  = import.meta.env.VITE_GROQ_API_KEY;
+const GROQ_URL = 'https://api.openai.com/v1/chat/completions';
+const MODEL    = 'gpt-4o';
+const API_KEY  = import.meta.env.VITE_OPENAI_API_KEY;
 
 const CRITERIA = ['clarity', 'creativity', 'engagement', 'coherence'];
 
@@ -35,7 +35,7 @@ async function chat(messages, opts = {}, _retry = 0) {
     const retryMsg = errBody.error?.message ?? '';
     const match    = retryMsg.match(/try again in ([\d.]+)s/i);
     const waitMs   = match ? Math.ceil(parseFloat(match[1]) * 1000) + 500 : (2 ** _retry) * 3000;
-    console.warn(`[Groq] 429 — waiting ${waitMs}ms then retry ${_retry + 1}/4`);
+    console.warn(`[OpenAI] 429 — waiting ${waitMs}ms then retry ${_retry + 1}/4`);
     await new Promise(r => setTimeout(r, waitMs));
     return chat(messages, opts, _retry + 1);
   }
@@ -43,8 +43,8 @@ async function chat(messages, opts = {}, _retry = 0) {
   if (!res.ok) {
     const errBody = await res.json().catch(() => ({}));
     const msg = errBody.error?.message || res.statusText;
-    console.error('[Groq] error →', res.status, msg);
-    throw new Error(`Groq ${res.status}: ${msg}`);
+    console.error('[OpenAI] error →', res.status, msg);
+    throw new Error(`OpenAI ${res.status}: ${msg}`);
   }
 
   const data = await res.json();
