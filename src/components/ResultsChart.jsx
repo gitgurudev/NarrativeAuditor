@@ -167,7 +167,7 @@ function ResultsChart({ results, scriptName, onClose }) {
           {/* Footer */}
           <div className={styles.chartFooter}>
             <div className={styles.footerMethod}>
-              Methodology: 4 independent criterion judges × 3-run consensus scoring · Tiered rationale (chain-of-thought → summary → score)
+              Methodology: 4 independent criterion judges · single-pass scoring · Tiered rationale (chain-of-thought → summary → score)
             </div>
             <div className={styles.footerRef}>
               Inspired by Netflix Technology Blog · "LLM-as-a-Judge" evaluation framework

@@ -126,7 +126,7 @@ function PdfUploader({
           </div>
 
           <p className={styles.planNote}>
-            {pdfInfo.totalChunks} sequential passes · 4 independent judges · 3-run consensus per criterion · character &amp; plot analysis
+            {pdfInfo.totalChunks} sequential passes · 4 independent judges · single-pass scoring per criterion · character &amp; plot analysis
           </p>
 
           {/* CTA */}
